@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Course Average Grade Calculator</title>
+    <title>Dynamic Course Grade Calculator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -59,36 +59,20 @@
             <p class="text-md text-gray-500">Define weights and calculate your course average.</p>
         </header>
 
-        <!-- Loading & Auth State -->
-        <div id="loading-overlay" class="fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50">
-            <div class="text-gray-600 font-semibold text-xl flex items-center">
-                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-primary-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Loading Data...
-            </div>
-        </div>
-        <div id="auth-info" class="mb-4 text-xs text-center text-gray-400"></div>
-
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-            <!-- 1. Category Weight Settings -->
             <div class="lg:col-span-1 card bg-white p-5 rounded-lg">
                 <h2 class="text-lg font-medium mb-4 text-gray-800 border-b pb-2">1. Category Weights (%)</h2>
                 <div id="category-weights" class="space-y-3">
-                    <!-- Category inputs will be rendered here -->
-                </div>
+                    </div>
                 <button onclick="addCategory()" class="w-full mt-4 py-2 text-primary-accent border border-primary-accent font-medium rounded-lg hover:bg-light-gray transition duration-150">
                     + Add Category
                 </button>
             </div>
 
-            <!-- 2. Course Calculation Summary -->
             <div class="lg:col-span-2 card bg-white p-5 rounded-lg">
                 <h2 class="text-lg font-medium mb-4 text-gray-800 border-b pb-2">3. Course Grade Summary</h2>
                 <div id="category-summary" class="space-y-3 mb-6">
-                    <!-- Summary of each category's performance -->
-                </div>
+                    </div>
                 <div class="p-4 bg-light-gray border-l-4 border-primary-accent rounded-lg flex justify-between items-center">
                     <span class="text-xl font-medium text-gray-700">Overall Course Average:</span>
                     <span id="overall-average" class="text-3xl font-bold text-gray-900">--%</span>
@@ -99,7 +83,6 @@
             </div>
         </div>
 
-        <!-- 3. Assignment Input Table -->
         <div class="card bg-white p-5 rounded-lg">
             <h2 class="text-lg font-medium mb-4 text-gray-800 border-b pb-2">2. Individual Assignments</h2>
 
@@ -115,8 +98,7 @@
                     </tr>
                 </thead>
                 <tbody id="assignments-table-body" class="bg-white divide-y divide-gray-100">
-                    <!-- Assignments will be rendered here -->
-                </tbody>
+                    </tbody>
             </table>
 
             <button onclick="addAssignment()" class="w-full mt-4 py-2 px-4 bg-primary-accent text-white font-medium rounded-lg hover:bg-blue-600 transition duration-150">
@@ -125,32 +107,18 @@
         </div>
     </div>
 
-    <!-- Firebase SDKs -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot, collection, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // Removed Firebase Imports
 
-        // Global State (Replaced by Firestore)
+        // Global State (Local-only)
         let categories = {
             "DAILY": { weight: 15, key: 'DAILY' },
             "QUIZ": { weight: 20, key: 'QUIZ' },
             "MAJOR": { weight: 65, key: 'MAJOR' },
         };
         let assignments = [];
-        let db;
-        let auth;
-        let userId = null;
-        let isAuthReady = false;
-        const DATA_COLLECTION = 'grade_data';
-        const DATA_DOC_ID = 'current_class';
-
-        // Global variables provided by the canvas environment
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-        setLogLevel('Debug');
+        
+        // Removed Firebase/Auth related global variables
 
         // Helper to format number to 2 decimal places
         const formatDecimals = (num) => isNaN(num) ? '--' : num.toFixed(2);
@@ -320,53 +288,15 @@
 
         // --- MUTATION & STATE MANAGEMENT FUNCTIONS ---
 
-        /**
-         * Saves the current state (categories and assignments) to Firestore.
-         */
-        async function saveState() {
-            if (!db || !userId) {
-                console.error("Firestore not initialized or user not logged in.");
-                return;
-            }
-            try {
-                // Private data path: /artifacts/{appId}/users/{userId}/grade_data/{docId}
-                const docRef = doc(db, 'artifacts', appId, 'users', userId, DATA_COLLECTION, DATA_DOC_ID);
-                await setDoc(docRef, {
-                    categories: categories,
-                    assignments: assignments,
-                    lastUpdated: new Date().toISOString()
-                });
-                console.log("State saved successfully!");
-            } catch (error) {
-                console.error("Error saving state to Firestore:", error);
-            }
-        }
+        // Removed saveState() and loadState()
 
-        /**
-         * Loads state from a snapshot and recalculates.
-         */
-        function loadState(data) {
-            if (data && data.categories) {
-                categories = data.categories;
-                // Re-keying is important as JSON doesn't preserve key order, and object destructuring can sometimes be problematic
-                categories = Object.keys(categories).reduce((acc, key) => {
-                    acc[key] = { ...categories[key], key };
-                    return acc;
-                }, {});
-            }
-            if (data && data.assignments) {
-                assignments = data.assignments;
-            }
-            calculateGrade();
-        }
-        
         // --- CATEGORY ACTIONS ---
 
         window.updateCategoryName = function(oldKey, newKey) {
             newKey = newKey.toUpperCase().trim().replace(/[^A-Z0-9]/g, '_'); // Sanitize key
             if (oldKey === newKey || newKey === "") {
                 categories[oldKey].key = newKey === "" ? oldKey : newKey; // Restore or update
-                saveState();
+                calculateGrade(); // Re-render
                 return;
             }
 
@@ -386,20 +316,19 @@
                 }
             });
 
-            saveState();
+            calculateGrade(); // Re-render
         }
 
         window.updateCategoryWeight = function(key, weight) {
             const numWeight = parseFloat(weight);
             categories[key].weight = isNaN(numWeight) ? 0 : numWeight;
             calculateGrade(); // Recalculate immediately for feedback
-            saveState();
         }
 
         window.addCategory = function() {
             const newKey = `NEW_CATEGORY_${Object.keys(categories).length + 1}`;
             categories[newKey] = { weight: 0, key: newKey };
-            saveState();
+            calculateGrade(); // Re-render
         }
 
         window.removeCategory = function(key) {
@@ -411,7 +340,7 @@
                 return assign;
             });
             delete categories[key];
-            saveState();
+            calculateGrade(); // Re-render
         }
 
         // --- ASSIGNMENT ACTIONS ---
@@ -426,7 +355,6 @@
                 assignments[index][field] = value;
             }
             calculateGrade(); // Recalculate immediately for feedback
-            saveState();
         }
 
         window.addAssignment = function() {
@@ -436,88 +364,20 @@
                 score: 100,
                 weight: 1.0
             });
-            saveState();
+            calculateGrade(); // Re-render
         }
 
         window.removeAssignment = function(index) {
             assignments.splice(index, 1);
-            saveState();
+            calculateGrade(); // Re-render
         }
 
         // --- FIREBASE INITIALIZATION ---
 
-        async function initFirebase() {
-            if (!firebaseConfig) {
-                document.getElementById('loading-overlay').innerHTML = `<div class="p-4 bg-red-100 text-red-700 rounded-lg">Error: Firebase configuration is missing. Data cannot be saved.</div>`;
-                return;
-            }
+        // Removed initFirebase() function
 
-            try {
-                const app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
-
-                const authInfoEl = document.getElementById('auth-info');
-                
-                // 1. Auth & Sign In
-                await new Promise(resolve => {
-                    onAuthStateChanged(auth, async (user) => {
-                        if (user) {
-                            userId = user.uid;
-                            authInfoEl.textContent = `Authenticated User ID (for data storage): ${userId}`;
-                        } else {
-                            // If no user is signed in (shouldn't happen with the token)
-                            if (initialAuthToken) {
-                                await signInWithCustomToken(auth, initialAuthToken).catch(e => {
-                                    console.error("Custom token sign-in failed:", e);
-                                    signInAnonymously(auth); // Fallback to anonymous
-                                });
-                            } else {
-                                await signInAnonymously(auth);
-                            }
-                        }
-                        isAuthReady = true;
-                        resolve();
-                    });
-                });
-
-                // 2. Start Firestore Listener
-                if (userId) {
-                    // Private data path: /artifacts/{appId}/users/{userId}/grade_data/{docId}
-                    const docRef = doc(db, 'artifacts', appId, 'users', userId, DATA_COLLECTION, DATA_DOC_ID);
-                    
-                    onSnapshot(docRef, (docSnap) => {
-                        document.getElementById('loading-overlay').classList.add('hidden');
-                        if (docSnap.exists()) {
-                            console.log("Data loaded from Firestore.");
-                            loadState(docSnap.data());
-                        } else {
-                            console.log("No data found in Firestore, using defaults.");
-                            // Save initial state if no document exists
-                            saveState();
-                            calculateGrade(); // Initial render with defaults
-                        }
-                    }, (error) => {
-                        document.getElementById('loading-overlay').classList.add('hidden');
-                        console.error("Firestore listener error:", error);
-                        // Fallback to initial rendering if listener fails
-                        calculateGrade(); 
-                    });
-                } else {
-                    document.getElementById('loading-overlay').classList.add('hidden');
-                    console.error("User ID not available after authentication attempt.");
-                    calculateGrade(); // Initial render with defaults
-                }
-                
-            } catch (error) {
-                document.getElementById('loading-overlay').classList.add('hidden');
-                console.error("Error initializing Firebase:", error);
-            }
-        }
-
-        // Initialize the app on window load
-        window.onload = initFirebase;
+        // Initialize the app on window load by running the calculator
+        window.onload = calculateGrade;
     </script>
 </body>
 </html>
-
